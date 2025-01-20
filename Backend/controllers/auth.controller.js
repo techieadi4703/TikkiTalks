@@ -1,8 +1,7 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import User from '../models/users.model.js';
 import { generateToken } from '../lib/utils.js';
-
+import cloudinary from '../lib/cloudinary.js';
 
 
 export const signup= async (req,res)=>{
@@ -80,5 +79,46 @@ export const logout=(req,res)=>{
     } catch (error) {
         console.log("Error in logout route");
         res.status(500).json({message:'logout controller went wrong, please try again later'});
+    }
+}
+
+export const updateProfile=async(req,res)=>{
+    try {
+        const {profilePicture}=req.body;
+        const userID=req.user._id;
+        
+        if(!profilePicture){
+            return res.status(400).json({message:'Please provide profile picture'});
+        }
+        const uploadResponse=  await cloudinary.uploader.upload(profilePicture);
+        const updatedUser= await User.findByIdAndUpdate(userID,{profilePicture:uploadResponse.secure_url},{new:true});
+        if(updatedUser){
+            res.status(200).json({
+                _id:updatedUser._id,
+                fullName:updatedUser.fullName,
+                email:updatedUser.email,
+                profilePicture:updatedUser.profilePicture,
+                message:'Profile updated successfully',
+            });
+            console.log('Profile updated successfully')
+        }
+        else{
+            res.status(400).json({message:'Invalid user data, profile not updated'});
+        }
+
+
+    } catch (error) {
+        console.log("Error in update-Profile route");
+        res.status(500).json({message:'update-Profile controller went wrong, please try again later'});
+    }
+}
+
+export const checkAuth=(req,res)=>{
+    try {
+        res.status(200).json(req.user);
+    } catch (error) {
+        console.log("Error in checkAuth route");
+        res.status(500).json({message:'checkAuth controller went wrong, please try again later'});
+        
     }
 }
