@@ -29,6 +29,7 @@ export const signup= async (req,res)=>{
                 profilePicture:user.profilePicture,
                 message:'User created successfully',
             });
+            console.log("signed up successfully")
         }
         else{
             res.status(400).json({message:'Invalid user data, user not created'});
@@ -39,10 +40,45 @@ export const signup= async (req,res)=>{
     }
 }
 
-export const login=(req,res)=>{
-    res.send('Login route');
+export const login= async(req,res)=>{
+    const {email,password}=req.body;
+    try {
+        const user= await User.findOne({email});
+        if(!user){
+            console.log("mail galat")
+            return res.status(400).json({message:"Invalid credentials"});
+        }
+        const isPasswordCorrect=await bcrypt.compare(password,user.password);
+        if(!isPasswordCorrect){
+            console.log("pass galat")
+            return res.status(400).json({message:"Invalid credentials"});
+        }
+        
+        generateToken(user._id,res);
+        res.status(201).json({
+            _id:user._id,
+            fullName:user.fullName,
+            email:user.email, 
+            profilePicture:user.profilePicture,
+            message:'User logged in successfully',
+        });
+        console.log('logged in successfully')
+
+    } catch (error) {
+        console.log("Error in login route");
+        res.status(500).json({message:'login controller went wrong, please try again later'});
+    }
 }
 
 export const logout=(req,res)=>{
-    res.send('Logout route');
+    try {
+        res.cookie("jwToken","",{
+            maxAge:0
+        })
+        res.status(200).json({message:'logged out successfully'});
+        console.log("logged out successfully")
+    } catch (error) {
+        console.log("Error in logout route");
+        res.status(500).json({message:'logout controller went wrong, please try again later'});
+    }
 }
