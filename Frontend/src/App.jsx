@@ -1,13 +1,14 @@
 import React, { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import HomePage from "./components/HomePage";
-import SignupPage from "./components/SignupPage";
-import LoginPage from "./components/LoginPage";
-import SettingsPage from "./components/SettingsPage";
-import ProfilePage from "./components/ProfilePage";
+import Navbar from "./pages/Navbar";
+import HomePage from "./pages/HomePage";
+import SignupPage from "./pages/SignupPage";
+import LoginPage from "./pages/LoginPage";
+import SettingsPage from "./pages/SettingsPage";
+import ProfilePage from "./pages/ProfilePage";
 import { useAuthStore } from "./store/useAuthStore";
 import { Loader } from "lucide-react";
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   const { checkAuth, authUser, isCheckingAuth } = useAuthStore();
@@ -28,11 +29,14 @@ const App = () => {
       <Navbar />
       <Routes>
         <Route path="/" element={authUser?<HomePage/>:<Navigate to={"/login"}/>} />
-        <Route path="/signup" element={authUser?<SignupPage />:<Navigate to={"/"}/>} />
-        <Route path="/login" element={authUser?<LoginPage />:<Navigate to={"/"}/>} />
+        {/* <Route path="/signup" element={authUser?<SignupPage />:<Navigate to={"/"}/>} /> */}
+        <Route path="/signup" element={<SignupPage />} />
+        {/* <Route path="/login" element={authUser?<LoginPage />:<Navigate to={"/"}/>} /> */}
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={authUser?<ProfilePage />:<Navigate to={"/login"}/>} />
       </Routes>
+      <Toaster />
       {/* <h1 className="text-2xl font-extrabold text-red-600">Hello Babby</h1>
       <div className="text-3xl">hello</div> */}
     </>
