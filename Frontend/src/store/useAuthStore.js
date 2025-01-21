@@ -36,6 +36,22 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  login: async (data) => {
+    set({ isLoggingIn: true });
+    try {
+      const res = await axiosInstance.post("/auth/login", data);
+      set({ authUser: res.data });
+      toast.success("Logged in successfully");
+      // get().connectSocket();
+    } catch (error) {
+      toast.error("Invalid credentials");
+      console.error("(FE) Error in login route:\n", error);
+      toast.error(error.res.data.message);
+    } finally {
+      set({ isLoggingIn: false });
+    }
+  },
+
   logout: async()=>{
     try {
       const res=await axiosInstance.post("/auth/logout");
@@ -45,6 +61,21 @@ export const useAuthStore = create((set) => ({
     } catch (error){
       toast.error(error.response.data.message);
       console.error("(FE) Error in logout route:\n", error);
+    }
+  },
+
+  updateProfile:async(data)=>{
+    set({isUpdatingProfile: true});
+    try {
+      const res = await axiosInstance.put("/auth/updateProfile", data);
+      set({authUser: res.data});
+      toast.success("Profile updated successfully");
+      console.log("res.data.message");
+    }catch (error) {
+      toast.error(error.response.data.message);
+      console.error("(FE) Error in updateProfile route:\n", error);
+    }finally{
+      set({isUpdatingProfile: false});
     }
   }
 
