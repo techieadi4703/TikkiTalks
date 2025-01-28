@@ -1,6 +1,9 @@
 import Message from "../models/messages.model.js";
 import User from "../models/users.model.js";
 
+import cloudinary from "../lib/cloudinary.js";
+import { getReceiverSocketId, io } from "../lib/socket.js";
+
 export const getAllSideUsers = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
@@ -34,8 +37,8 @@ export const getAllMessages = async (req, res) => {
         { sender: userToChatId, receiver: myId },
       ],
     });
+    console.log("all tikki ",messages);
     res.status(200).json({ messages });
-    console.log(messages);
   } catch (error) {
     console.log("Error in getAllMessages route:", error);
     res.status(500).json({
@@ -67,15 +70,22 @@ export const sendMessage = async (req, res) => {
     }
 
     const newMessage = new Message({
-      sender: senderId,
-      receiver: receiverId,
+      senderId,
+      receiverId,
       text,
       image: imageUrl,
     });
     await newMessage.save();
 
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    console.log("\n\nrID:",receiverSocketId,"\n")
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
+
+
     res.status(200).json({ message: "Message sent", data: newMessage });
-    console.log("Message sent", newMessage);
+    console.log("\nMessage tikki::", newMessage);
   } catch (error) {
     console.log("Error in sendMessage route:", error);
     res.status(500).json({

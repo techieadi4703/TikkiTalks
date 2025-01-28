@@ -25,7 +25,7 @@ export const signup= async (req,res)=>{
                 _id:user._id,
                 fullName:user.fullName,
                 email:user.email,
-                profilePicture:user.profilePicture,
+                profilePicture:"",
                 message:'User created successfully',
             });
             console.log("signed up successfully")

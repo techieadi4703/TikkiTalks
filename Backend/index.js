@@ -5,10 +5,9 @@ import messageRoutes from './routes/message.route.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import {connectDB} from './lib/db.js';
+import { app, server } from './lib/socket.js';
 dotenv.config();
 
-
-const app=express();
 const port=process.env.PORT || 3000;
 app.get('/',(req,res)=>{
     res.send('ok Google, Server running');
@@ -23,7 +22,7 @@ app.use(cors({
 app.use('/api/auth',authRoutes);
 app.use('/api/messages',messageRoutes);
 
-app.listen(port,()=>{
+server.listen(port,()=>{
     console.log(`Server is running on port: ${port}`);
     connectDB();
 });
