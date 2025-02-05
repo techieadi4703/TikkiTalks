@@ -19,16 +19,19 @@ const ChatContainer = () => {
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
+  // Ensure getMessages only runs when selectedUser is defined
   useEffect(() => {
-    getMessages(selectedUser._id);
+    if (!selectedUser) return;
 
+    getMessages(selectedUser._id);
     subscribeToMessages();
 
     return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+  }, [selectedUser, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
+  // Smooth scrolling to the latest message
   useEffect(() => {
-    if (messageEndRef.current && messages) {
+    if (messageEndRef.current && messages.length > 0) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
@@ -52,15 +55,14 @@ const ChatContainer = () => {
           <div
             key={message._id}
             className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-            ref={messageEndRef}
           >
-            <div className=" chat-image avatar">
+            <div className="chat-image avatar">
               <div className="size-10 rounded-full border">
                 <img
                   src={
                     message.senderId === authUser._id
-                      ? authUser.profilePic || "/avatar.png"
-                      : selectedUser.profilePic || "/avatar.png"
+                      ? authUser.profilePic || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKKOdmJz8Z2pDtYgFgR2u9spABvNNPKYYtGw&s"
+                      : selectedUser?.profilePic || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKKOdmJz8Z2pDtYgFgR2u9spABvNNPKYYtGw&s"
                   }
                   alt="profile pic"
                 />
@@ -68,26 +70,27 @@ const ChatContainer = () => {
             </div>
             <div className="chat-header mb-1">
               <time className="text-xs opacity-50 ml-1">
-                {formatMessageTime(message.data.createdAt)}
+                {formatMessageTime(message.createdAt)} {/* Keeping your original logic */}
               </time>
             </div>
             <div className="chat-bubble flex flex-col">
               {message.image && (
                 <img
-                  src={message.data.image}
+                  src={message.image}
                   alt="Attachment"
                   className="sm:max-w-[200px] rounded-md mb-2"
                 />
               )}
-              {console.log("hello mr tikki message ", message.data)}
-              {message.data.text && <p>{message.data.text}</p>}
+              {message.text && <p>{message.text}</p>}
             </div>
           </div>
         ))}
+        <div ref={messageEndRef} /> {/* Move outside of the .map() loop */}
       </div>
 
       <MessageInput />
     </div>
   );
 };
+
 export default ChatContainer;

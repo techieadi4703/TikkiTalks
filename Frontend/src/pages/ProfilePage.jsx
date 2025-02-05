@@ -9,23 +9,22 @@ const ProfilePage = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
-
-    reader.onload = () => {
+    reader.onload = async () => {
       const base64Image = reader.result;
-      setSelectedImg(base64Image);
-      updateProfile({ profilePic: base64Image }).catch((err) =>
-        console.error("Failed to upload profile picture:", err)
-      );
+      console.log("\n\n*************STUMMMMMMMM\n\n",reader.result);
+      setSelectedImg(base64Image);  
+      console.log("Uploading image...");
+      try {
+        await updateProfile({ profilePic: base64Image });
+        console.log("Profile picture updated successfully!");
+      } catch (err) {
+        console.error("Failed to upload profile picture:", err);
+      }
     };
-
-    reader.onerror = () => {
-      console.error("File reading failed.");
-    };
-
     reader.readAsDataURL(file);
   };
+  
 
   if (!authUser) {
     return (

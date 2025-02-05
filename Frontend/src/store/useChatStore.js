@@ -14,43 +14,36 @@ export const useChatStore = create((set, get) => ({
     set({ isUsersLoading: true });
     try {
       const res = await axiosInstance.get("/messages/users");
-      console.log("hiiiiiiiiiiiiiiiiiiiiiiiii",res)
       set({ users: res.data.users });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to load users");
     } finally {
       set({ isUsersLoading: false });
     }
   },
 
   getMessages: async (userId) => {
-    set({ isMessagesLoading: true });
+    set({ messages: [], isMessagesLoading: true }); 
     try {
-      const res = await axiosInstance.get(`/messages/${userId}`);
-      console.log("\n\npaaaaaaaaaaapaaaaaaaaaaa\n\n",res)
+      const res = await axiosInstance.get(`http://localhost:5001/api/messages/${userId}`);
+      console.log("\nhllllllllllllo",res.data)
       set({ messages: res.data.messages });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to load messages");
     } finally {
       set({ isMessagesLoading: false });
     }
   },
 
-
-
-  
-
   sendMessage: async (messageData) => {
-
     const { selectedUser, messages } = get();
-    console.log("\n\n\n\n\n",selectedUser)
-    console.log("\n\n\n\n\n\nthe message\n\n",messages)
+    if (!selectedUser) return;
+
     try {
       const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-      console.log("tikki .com",messageData.text)
       set({ messages: [...messages, res.data] });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to send message");
     }
   },
 
@@ -61,18 +54,21 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
-
-      set({
-        messages: [...get().messages, newMessage],
-      });
+      set((state) => ({
+        messages: [...state.messages, newMessage], // Fix: Using functional update for reliability
+      }));
     });
   },
+
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
   },
 
-  setSelectedUser: (selectedUser) => set({ selectedUser }),
+  setSelectedUser: (selectedUser) => {
+    set({ selectedUser });
+    if (selectedUser) {
+      get().getMessages(selectedUser._id); // Fix: Load messages when selecting a user
+    }
+  },
 }));

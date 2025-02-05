@@ -27,14 +27,14 @@ export const getAllMessages = async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
     const myId = req.user._id;
+    console.log("my iddddddddd::",req.user._id);
     if (!myId || !userToChatId) {
       return res.status(400).json({ message: "Invalid user IDs" });
     }
-
     const messages = await Message.find({
       $or: [
-        { sender: myId, receiver: userToChatId },
-        { sender: userToChatId, receiver: myId },
+        { senderId:myId, receiverId:userToChatId },
+        { senderId:userToChatId, receiverId:myId },
       ],
     });
     console.log("all tikki ",messages);
@@ -53,7 +53,6 @@ export const sendMessage = async (req, res) => {
     const { text, image } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
-
     if (!text && !image) {
       return res.status(400).json({ message: "Message content is required" });
     }

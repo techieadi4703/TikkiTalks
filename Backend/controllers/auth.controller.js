@@ -17,7 +17,8 @@ export const signup= async (req,res)=>{
         }
         const hashedPass = await bcrypt.hash(password,10);
         // const user1=await User.create({email,password:hashedPass,fullName});
-        const user=new User({email,password:hashedPass,fullName});
+        const profilePicture='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKKOdmJz8Z2pDtYgFgR2u9spABvNNPKYYtGw&s';
+        const user=new User({email,password:hashedPass,fullName,profilePicture});
         if(user){
             generateToken(user._id,res);
             await user.save();
@@ -25,7 +26,7 @@ export const signup= async (req,res)=>{
                 _id:user._id,
                 fullName:user.fullName,
                 email:user.email,
-                profilePicture:"",
+                profilePicture:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKKOdmJz8Z2pDtYgFgR2u9spABvNNPKYYtGw&s",
                 message:'User created successfully',
             });
             console.log("signed up successfully")
@@ -82,36 +83,51 @@ export const logout=(req,res)=>{
     }
 }
 
-export const updateProfile=async(req,res)=>{
+export const updateProfile = async (req, res) => {
     try {
-        const {profilePicture}=req.body;
-        const userID=req.user._id;
-        
-        if(!profilePicture){
-            return res.status(400).json({message:'Please provide profile picture'});
-        }
-        const uploadResponse=  await cloudinary.uploader.upload(profilePicture);
-        const updatedUser= await User.findByIdAndUpdate(userID,{profilePicture:uploadResponse.secure_url},{new:true});
-        if(updatedUser){
-            res.status(200).json({
-                _id:updatedUser._id,
-                fullName:updatedUser.fullName,
-                email:updatedUser.email,
-                profilePicture:updatedUser.profilePicture,
-                message:'Profile updated successfully',
-            });
-            console.log('Profile updated successfully')
-        }
-        else{
-            res.status(400).json({message:'Invalid user data, profile not updated'});
-        }
-
-
+      console.log("Request body:", req.body);
+      console.log("User ID from request:", req.user);
+  
+      const { profilePicture } = req.body;
+      const userID = req.user?._id;
+  
+      if (!userID) {
+        return res.status(401).json({ message: "Unauthorized, user not found" });
+      }
+  
+      if (!profilePicture) {
+        return res.status(400).json({ message: "Please provide profile picture" });
+      }
+  
+      const uploadResponse = await cloudinary.uploader.upload(profilePicture, {
+        folder: "profile_pictures",
+      });
+  
+      const updatedUser = await User.findByIdAndUpdate(
+        userID,
+        { profilePicture: uploadResponse.secure_url },
+        { new: true }
+      );
+  
+      if (!updatedUser) {
+        return res.status(400).json({ message: "Invalid user data, profile not updated" });
+      }
+  
+      res.status(200).json({
+        _id: updatedUser._id,
+        fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        profilePicture: updatedUser.profilePicture,
+        message: "Profile updated successfully",
+      });
+  
+      console.log("Profile updated successfully:", updatedUser);
     } catch (error) {
-        console.log("Error in update-Profile route");
-        res.status(500).json({message:'update-Profile controller went wrong, please try again later'});
+      console.error("Error in update-Profile route:", error);
+      res.status(500).json({ message: "Update-Profile controller went wrong, please try again later" });
     }
-}
+  };
+  
 
 export const checkAuth=(req,res)=>{
     try {
